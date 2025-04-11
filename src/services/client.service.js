@@ -95,10 +95,25 @@ const getHoursBinsGraphData = async (userId, clientCompanyId, empCompanyId) => {
     }
 };
 
+async function getEmployeeDetails() {
+    try {
+        const result = await pool.query(queries.GET_EMPLOYEE_DETAILS);
+        if (!result.rows.length) {
+            const error = new Error('No data found for the given parameters');
+            error.status = 404;
+            throw error;
+        }
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     getUserFarmsEmployees,
     getHoursBinsData,
     getWeeklyData,
     getComparisonData,
-    getHoursBinsGraphData
+    getHoursBinsGraphData,
+    getEmployeeDetails
 };

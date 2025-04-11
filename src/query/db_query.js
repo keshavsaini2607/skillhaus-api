@@ -165,11 +165,232 @@ AND emp.employee_company_id = $3
 GROUP BY c.company_name, c.client_company_id, emp.first_name, emp.middle_name, emp.last_name, emp.employee_company_id, wt.date, wt.start_time, wt.end_time, wb.shift_name
 ORDER BY wt.date, wb.shift_name`;
 
+
+const GET_EMPLOYEE_DETAILS = `SELECT 
+	emp.id as emp_uuid,
+    emp.employee_company_id, 
+    CONCAT(emp.first_name, ' ', COALESCE(emp.middle_name, ''), ' ', emp.last_name) AS full_name, 
+    emp.gender, 
+    emp.dob, 
+    emp.status, 
+    emp.relationship_status,
+    
+    -- Latest record from employee_levels
+    emp_level."levels",
+
+    -- Latest record from employee_auschem
+    auschem.id as auschem_uuid,
+    auschem.company_name AS auschem_company_name,
+    auschem.registration_numbers,
+    auschem.expiry_date AS auschem_expiry_date,
+    auschem.file AS auschem_file,
+    auschem.verification_status AS auschem_verification_status,
+    auschem.updated_on AS auschem_updated_on,
+
+    -- Latest record from employee_auscup
+    auscup.id as auscup_uuid,
+    auscup.company_name AS auscup_company_name,
+    auscup.permit_no,
+    auscup.permit_type,
+    auscup.permit_expiry,
+    auscup.verification_status AS auscup_verification_status,
+    auscup.updated_on AS auscup_updated_on,
+
+    -- Latest record from employee_bankdetails
+    bank.id as bank_uuid,
+    bank.salary_bank_name,
+    bank.salary_bank_account_no,
+    bank.salary_bank_bsb_no,
+    bank.status AS bank_account_status,
+    bank.updated_on AS bank_updated_on,
+
+    -- Latest record from employee_dl (Driver License)
+    dl.id as dl_uuid,
+    dl.licence_number,
+    dl.licence_expiry,
+    dl.verification_status AS dl_verification_status,
+    dl.updated_on AS dl_updated_on,
+
+    -- Latest record from employee_contact
+    contact.id as contact_uuid,
+    contact.street_no_and_name,
+    contact.suburb,
+    contact.state,
+    contact.postcode,
+    contact.home_phone,
+    contact.mobile_phone,
+    contact.primary_email,
+    contact.secondary_email,
+    contact.mobile_verification_status,
+    contact.homephone_verification_status,
+    contact.email_verification_status,
+    contact.updated_on AS contact_updated_on,
+
+    -- Latest record from employee_emergency
+    emergency.id as emergency_uuid,
+    emergency.name_of_person,
+    emergency.relationship,
+    emergency.street_no_and_name AS emergency_address,
+    emergency.suburb AS emergency_suburb,
+    emergency.state AS emergency_state,
+    emergency.postal_code AS emergency_postal_code,
+    emergency.home_phone_no AS emergency_home_phone,
+    emergency.mobile_no AS emergency_mobile,
+    emergency.work_no AS emergency_work_no,
+    emergency.status as emergency_contact_status,
+    emergency.updated_on AS emergency_updated_on,
+
+    -- Latest record from employee_passport
+    passport.id as passport_uuid,
+    passport.nationality,
+    passport.passport_no,
+    passport.date_of_expiry,
+    passport.verification_status AS passport_verification_status,
+    passport.updated_on AS passport_updated_on,
+    passport.country_of_passport,
+
+    -- Latest record from employee_super
+    super.id as super_uuid,
+    super.fund_name,
+    super.member_number,
+    super.bsb AS super_bsb,
+    super.account_number AS super_account_number,
+    super.abn AS super_abn,
+    super.spin AS super_spin,
+    super.usm AS super_usm,
+    super.employer_membership_number,
+    super.rsa_member_number,
+    super.fund_phone,
+    super.status as super_status,
+    super.updated_on AS super_updated_on,
+
+    -- Latest record from employee_tfn (Tax File Number)
+    tfn.id as tfn_uuid,
+    tfn.is_authorised_payer,
+    tfn.purpose_to_paid_id,
+    tfn.is_australian,
+    tfn.is_claiming_reduce_rate,
+    tfn.is_claiming_special_taxis,
+    tfn.hecs_debt,
+    tfn.is_financial_supplement_debt,
+    tfn.is_deductible_amount,
+    tfn.status as tfn_status,
+    tfn.updated_on AS tfn_updated_on,
+
+    -- Latest record from employee_vivo (Visa Details)
+    vivo.id as vivo_uuid,
+    vivo.vivo_num,
+    vivo.vivo_expiry_date,
+    vivo.vivo_verification_status,
+    vivo.visa_category,
+    vivo.visa_class_subclass,
+    vivo.visa_applicant,
+    vivo.visa_grant_date,
+    vivo.visa_location,
+    vivo.visa_work_entitlement,
+    vivo.vivo_queried_on,
+    vivo.updated_on AS vivo_updated_on
+
+FROM live.employee emp
+
+-- Joining latest record from employee_auschem
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_auschem 
+    ORDER BY employee_id, updated_on DESC
+) auschem 
+    ON emp.employee_company_id = auschem.employee_id
+
+-- Joining latest record from employee_auscup
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_auscup 
+    ORDER BY employee_id, updated_on DESC
+) auscup 
+    ON emp.employee_company_id = auscup.employee_id
+
+-- Joining latest record from employee_bankdetails
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_bankdetails
+    ORDER BY employee_id, updated_on DESC
+) bank
+    ON emp.employee_company_id = bank.employee_id
+
+-- Joining latest record from employee_dl (Driver License)
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_dl
+    ORDER BY employee_id, updated_on DESC
+) dl
+    ON emp.employee_company_id = dl.employee_id
+
+-- Joining latest record from employee_contact
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_contact
+    ORDER BY employee_id, updated_on DESC
+) contact
+    ON emp.employee_company_id = contact.employee_id
+
+-- Joining latest record from employee_emergency
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_emergency
+    ORDER BY employee_id, updated_on DESC
+) emergency
+    ON emp.employee_company_id = emergency.employee_id
+
+-- Joining latest record from employee_passport
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_passport
+    ORDER BY employee_id, updated_on DESC
+) passport
+    ON emp.employee_company_id = passport.employee_id
+
+-- Joining latest record from employee_super
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_super
+    ORDER BY employee_id, updated_on DESC
+) super
+    ON emp.employee_company_id = super.employee_id
+
+-- Joining latest record from employee_tfn (Tax File Number)
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_tfn
+    ORDER BY employee_id, updated_on DESC
+) tfn
+    ON emp.employee_company_id = tfn.employee_id
+
+-- Joining latest record from employee_vivo (Visa Details)
+JOIN (
+    SELECT DISTINCT ON (employee_id) * 
+    FROM live.employee_vivo
+    ORDER BY employee_id, updated_on DESC
+) vivo
+    ON emp.employee_company_id = vivo.employee_id
+    
+-- Joining latest record from employee_level (Level Details)
+JOIN (
+    SELECT DISTINCT ON (employee_company_id) * 
+    FROM live.employee_levels
+    ORDER BY employee_company_id, updated_on DESC
+) emp_level
+    ON emp.employee_company_id = emp_level.employee_company_id
+
+WHERE 
+    emp.status = 'Active'
+    AND emp_level."levels" <> 'Director'`;
+
 export {
-    GET_USER,
-    GET_FARMS_EMPLOYEES,
-    GET_HOURS_SHIFTS,
-    GET_WEEKLY_DATA,
-    GET_COMPARISON_DATA,
-    GET_HOURS_BINS_GRAPH
+   GET_USER,
+   GET_FARMS_EMPLOYEES,
+   GET_HOURS_SHIFTS,
+   GET_WEEKLY_DATA,
+   GET_COMPARISON_DATA,
+   GET_HOURS_BINS_GRAPH,
+   GET_EMPLOYEE_DETAILS
 };

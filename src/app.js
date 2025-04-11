@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
 const clientRoutes = require("./routes/client.routes");
+const employeeRoutes = require("./routes/employee.routes");
 require("dotenv").config();
 const serverless = require('serverless-http');
 
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/auth", authRoutes);
 app.use("/client", clientRoutes);
+app.use("/employee", employeeRoutes);
 
 
 // For local development
