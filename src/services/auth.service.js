@@ -13,6 +13,20 @@ const getUsers = async (username) => {
    }
 };
 
+const getUserByUID = async (user_id) => {
+   try {
+      const user = await pool.query(queries.GET_USER_BY_UID, [user_id]);
+      if (!user.rows.length) {
+         const error = new Error("User not found");
+         error.status = 404;
+         throw error;
+      }
+      return user.rows[0];
+   } catch (error) {
+      throw new Error(`Database query error: ${error.message}`);
+   }
+};
+
 const loginUser = async ({ username, password }) => {
    try {
       const users = await getUsers(username);
@@ -80,4 +94,5 @@ module.exports = {
    getUsers,
    loginUser,
    updatePassword,
+   getUserByUID
 };

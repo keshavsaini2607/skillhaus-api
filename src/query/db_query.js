@@ -1,6 +1,7 @@
 // SQL queries for Node.js application
 
 const GET_USER = "SELECT * FROM live.users WHERE username = $1";
+const GET_USER_BY_UID = "SELECT * FROM live.users WHERE user_id = $1";
 
 const GET_FARMS_EMPLOYEES = `
     SELECT DISTINCT 
@@ -392,5 +393,6 @@ export {
    GET_WEEKLY_DATA,
    GET_COMPARISON_DATA,
    GET_HOURS_BINS_GRAPH,
-   GET_EMPLOYEE_DETAILS
+   GET_EMPLOYEE_DETAILS,
+   GET_USER_BY_UID
 };

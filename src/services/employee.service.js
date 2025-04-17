@@ -9,19 +9,21 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
-async function getWorkEligibilityDocFromS3({folder, uuid}) {
+async function getWorkEligibilityDocFromS3(folder, subFolder, uuid) {
     try {
-        const s3Key = `employee/${folder}/${uuid}.pdf`;
+        const s3Key = `${folder}/${subFolder}/${uuid}.pdf`;
+        console.log('S3 Key:', s3Key);
         const params = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: s3Key
+            Bucket: process.env.AWS_BUCKET_EMP,
+            Key: s3Key,
+            Expires: 3600 // URL expires in 1 hour
         };
         
-        const data = await s3.getObject(params).promise();
-        return data.Body;
+        const signedUrl = await s3.getSignedUrlPromise('getObject', params);
+        return signedUrl;
     } catch (error) {
         console.error('S3 Access Error:', error);
-        throw new Error('Failed to access document from S3');
+        throw new Error('Failed to generate signed URL for S3 document');
     }
 }
 
